@@ -2,12 +2,19 @@ namespace SHOM {
     void SHOMInterpreter::Interprete(ifstream& file){
         while (getline(file, this->Line)){
             for (char c : this->Line){
-                if (isdigit(c)){
+                if (isdigit(c) && this->CurrentType!=String){
                     if (this->CurrentType!=Double)
                         this->CurrentType = Integer;
                 }
 
-                else if (c=='.'){
+                else if (c=='"'){
+                    if (this->CurrentType!=String)
+                        this->CurrentType = String;
+                    else
+                        goto store;
+                }
+
+                else if (this->CurrentType!=String && c=='.'){
                     if (this->CurrentType==Double)
                         this->Error("Unexpected floating point");
 
@@ -15,17 +22,24 @@ namespace SHOM {
                 }
 
                 else {
-                    this->Token = Trim(this->Token);
+                    if (this->CurrentType!=String){
+                        this->Token = Trim(this->Token);
+                        
+                        store:
 
-                    if (!this->Token.empty())
-                        this->Memory.push(MemoryCell(this->Token, this->CurrentType));
+                        if (this->CurrentType==String)
+                            this->Token.erase(this->Token.begin());
 
-                    if (Syntax::Instructions[c])
-                        Syntax::Instructions[c]();
+                        if (!this->Token.empty())
+                            this->Memory.push({this->Token, this->CurrentType});
 
-                    Reset();
+                        if (Syntax::Instructions[c])
+                            Syntax::Instructions[c]();
 
-                    continue;
+                        Reset();
+
+                        continue;
+                    }
                 }
 
                 this->Token+=c;

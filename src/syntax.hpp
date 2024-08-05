@@ -1,13 +1,14 @@
+#define TOP Interpreter.Memory.top(); Interpreter.Memory.pop()
+#define GETAB auto a = TOP; auto b = TOP;
+
 namespace SHOM {
     namespace Syntax {
-        char Quote = '"';
-
         unordered_map<char, function<void()>> Instructions = {
             {'~', [](){
-                cout << (Interpreter.Memory.size() ? Interpreter.Memory.top().Value : "");
+                cout << (Interpreter.Memory.empty() ? "" : Interpreter.Memory.top().Value);
             }},
 
-            {';', [](){
+            {'`', [](){
                 if (!Interpreter.Memory.empty())
                     Interpreter.Memory.pop();
             }},
@@ -18,13 +19,24 @@ namespace SHOM {
             }},
 
             {'+', [](){
-                unsigned long long a = stoull(Interpreter.Memory.top().Value);
-                Interpreter.Memory.pop();
-                unsigned long long b = stoull(Interpreter.Memory.top().Value);
-                Interpreter.Memory.pop();
+                GETAB;
+                b+a;
+            }},
 
-                Interpreter.Memory.push(MemoryCell(to_string(a+b), Integer));
-            }}
+            {'-', [](){
+                    GETAB;
+                    b-a;
+            }},
+
+            {'*', [](){
+                    GETAB;
+                    b*a;
+            }},
+
+            {'/', [](){
+                    GETAB;
+                    b/a;
+            }},
         };
     }
 }
