@@ -32,11 +32,20 @@ namespace SHOM {
                         
                         store:
 
-                        if (this->CurrentType==String)
-                            this->Token.erase(this->Token.begin());
-
-                        if (!this->Token.empty())
-                            this->Memory.push({this->Token, this->CurrentType});
+                        if (!this->Token.empty()){
+                            switch (this->CurrentType){
+                                case Integer:
+                                    this->Memory.push({stoll(this->Token), this->CurrentType});
+                                    break;
+                                case Double:
+                                    this->Memory.push({stod(this->Token), this->CurrentType});
+                                    break;
+                                case String:
+                                    this->Token.erase(this->Token.begin());
+                                    this->Memory.push({this->Token, this->CurrentType});
+                                    break;
+                            }
+                        }
 
                         if (Syntax::Instructions[c])
                             Syntax::Instructions[c]();

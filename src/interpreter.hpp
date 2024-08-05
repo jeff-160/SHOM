@@ -1,21 +1,27 @@
+#define SERR \
+    if (this->Type==String || a.Type==String) throw 0
+
 #define NUMOP(a, b, o, f, t) \
-    ostringstream oss; \
-    oss << setprecision(8) << noshowpoint << (f(a) o f(b)); \
-    Interpreter.Memory.push({oss.str(), t})
+    Interpreter.Memory.push({to_string((a->Cast<f>() o b.Cast<f>())), t})
 
 #define NUMOPS(o) \
     else if (this->Type==Integer) { \
-        NUMOP(this->Value, a.Value, o, stoll, Integer); \
+        NUMOP(this, a, o, long long, Integer); \
     } \
     else if (this->Type==Double) { \
-        NUMOP(this->Value, a.Value, o, stod, Double); \
+        NUMOP(this, a, o, double, Double); \
     }
 
 #define LOGOP(x, y, o) \
     if (a.Type==String || this->Type==String){ \
-        NUMOP(y, x, o, , Integer); \
+        Interpreter.Memory.push({to_string(x o y), Integer}); \
     } \
     NUMOPS(o);
+
+#define IMPCAST \
+    if constexpr (is_same_v<T, string>) return to_string(v); \
+    else return (T)v; \
+
 
 string operator*(const string& s, long long n){
     string r = "";
@@ -33,8 +39,30 @@ namespace SHOM {
     };
 
     struct MemoryCell {
-        string Value;
+        variant<long long, double, string> Value;
         DataType Type;
+
+        template <typename T>
+        T Cast() const {
+            if (this->Type==Integer){
+                auto v = get<long long>(this->Value);
+                IMPCAST;
+            }
+            else if (this->Type==Double){
+                auto v = get<double>(this->Value);
+                IMPCAST;
+            }
+            else {
+                auto v = get<string>(this->Value);
+                
+                if constexpr (is_same_v<T, long long>)
+                    return stoll(v);
+                else if constexpr (is_same_v<T, double>)
+                    return stod(v);
+                else
+                    return v;
+            }
+        }
 
         void operator+(MemoryCell const& a);
         void operator-(MemoryCell const& a);
@@ -46,6 +74,7 @@ namespace SHOM {
         void operator>(MemoryCell const& a);
         void operator<(MemoryCell const& a);
         void operator^(MemoryCell const& a);
+        void operator%(MemoryCell const& a);
     };
 
     struct SHOMInterpreter {
@@ -80,44 +109,77 @@ namespace SHOM {
 
     void MemoryCell::operator+(MemoryCell const& a){
         if (this->Type==String || a.Type==String)
-            Interpreter.Memory.push({this->Value+a.Value, String});
+            Interpreter.Memory.push({this->Cast<string>()+a.Cast<string>(), String});
             
         NUMOPS(+);
     }
 
     void MemoryCell::operator-(MemoryCell const& a){
-        if (this->Type==String || a.Type)
-            Interpreter.Error("Mismatched types");
-
+        SERR;
         NUMOPS(-);
     }
 
     void MemoryCell::operator*(MemoryCell const& a){
         if (a.Type==String)
-            Interpreter.Memory.push({a.Value*stoll(this->Value), String});
+            Interpreter.Memory.push({a.Cast<string>()*this->Cast<long long>(), String});
 
         else if (this->Type==String)
-            Interpreter.Memory.push({this->Value*stoll(a.Value), String});
+            Interpreter.Memory.push({this->Cast<string>()*a.Cast<long long>(), String});
 
         NUMOPS(*);
     }
 
     void MemoryCell::operator/(MemoryCell const& a){
-        if (this->Type==String || a.Type)
-            Interpreter.Error("Mismatched types");
-
+        SERR;
         NUMOPS(/);
     }
 
     void MemoryCell::operator&(MemoryCell const& a){
-        LOGOP(!a.Value.empty(), !this->Value.empty(), &&);
+        LOGOP(!this->Cast<string>().empty(), !a.Cast<string>().empty(), &&);
     }
 
     void MemoryCell::operator|(MemoryCell const& a){
-        LOGOP(!a.Value.empty(), !this->Value.empty(), ||);
+        LOGOP(!this->Cast<string>().empty(), !a.Cast<string>().empty(), ||);
     }
     
     void MemoryCell::operator=(MemoryCell const& a){
-        LOGOP(a.Value, this->Value, ==);
+        LOGOP(this->Cast<string>(), a.Cast<string>(), ==);
+    }
+
+    void MemoryCell::operator>(MemoryCell const& a){
+        LOGOP(this->Cast<string>().size(), a.Cast<string>().size(), >);
+    }
+    
+    void MemoryCell::operator<(MemoryCell const& a){
+        LOGOP(this->Cast<string>().size(), a.Cast<string>().size(), <);
+    }
+    
+    void MemoryCell::operator^(MemoryCell const& a){
+        if (this->Type==String || a.Type==String)
+            throw 0;
+        
+        else if (this->Type==Integer){
+            long long x = this->Cast<long long>(), r = 1;
+
+            for (long long i=0;i<a.Cast<long long>();i++)
+                r*=x;
+
+            Interpreter.Memory.push({to_string(r), Integer});
+        }
+        
+        else if (this->Type==Double)
+            Interpreter.Memory.push({to_string(pow(this->Cast<double>(), a.Cast<double>())), Integer});
+    }
+
+    void MemoryCell::operator%(MemoryCell const& a){
+        SERR;
+
+        else if(this->Type==Integer)
+            NUMOP(this, a, %, long long, Integer);
+        
+        else if(this->Type==Double){
+            double x = this->Cast<double>(), y = a.Cast<double>();   
+            Interpreter.Memory.push({to_string(x-(int)(x/y)*y), Double});
+        }
     }
 }
