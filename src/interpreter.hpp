@@ -1,6 +1,6 @@
 #define NUMOP(a, b, o, f, t) \
     ostringstream oss; \
-    oss << setprecision(8) << noshowpoint << f(a) o f(b); \
+    oss << setprecision(8) << noshowpoint << (f(a) o f(b)); \
     Interpreter.Memory.push({oss.str(), t})
 
 #define NUMOPS(o) \
@@ -11,8 +11,18 @@
         NUMOP(this->Value, a.Value, o, stod, Double); \
     }
 
-#define STROP(a, b, o) \
-    Interpreter.Memory.push({a o b, String})
+#define LOGOP(x, y, o) \
+    if (a.Type==String || this->Type==String){ \
+        NUMOP(y, x, o, , Integer); \
+    } \
+    NUMOPS(o);
+
+string operator*(const string& s, long long n){
+    string r = "";
+    for (long long i=0;i<n;i++)
+        r+=s;
+    return r;
+}
 
 namespace SHOM {
     enum DataType {
@@ -70,29 +80,44 @@ namespace SHOM {
 
     void MemoryCell::operator+(MemoryCell const& a){
         if (this->Type==String || a.Type==String)
-            STROP(this->Value, a.Value, +);
+            Interpreter.Memory.push({this->Value+a.Value, String});
             
         NUMOPS(+);
     }
 
     void MemoryCell::operator-(MemoryCell const& a){
-        if (this->Type==String)
+        if (this->Type==String || a.Type)
             Interpreter.Error("Mismatched types");
 
         NUMOPS(-);
     }
 
     void MemoryCell::operator*(MemoryCell const& a){
-        if (this->Type==String)
-            1;
+        if (a.Type==String)
+            Interpreter.Memory.push({a.Value*stoll(this->Value), String});
+
+        else if (this->Type==String)
+            Interpreter.Memory.push({this->Value*stoll(a.Value), String});
 
         NUMOPS(*);
     }
 
     void MemoryCell::operator/(MemoryCell const& a){
-        if (this->Type==String)
-            1;
+        if (this->Type==String || a.Type)
+            Interpreter.Error("Mismatched types");
 
         NUMOPS(/);
+    }
+
+    void MemoryCell::operator&(MemoryCell const& a){
+        LOGOP(!a.Value.empty(), !this->Value.empty(), &&);
+    }
+
+    void MemoryCell::operator|(MemoryCell const& a){
+        LOGOP(!a.Value.empty(), !this->Value.empty(), ||);
+    }
+    
+    void MemoryCell::operator=(MemoryCell const& a){
+        LOGOP(a.Value, this->Value, ==);
     }
 }

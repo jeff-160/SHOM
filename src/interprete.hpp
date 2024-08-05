@@ -1,7 +1,9 @@
 namespace SHOM {
     void SHOMInterpreter::Interprete(ifstream& file){
         while (getline(file, this->Line)){
-            for (char c : this->Line){
+            for (size_t i=0;i<this->Line.size();i++){
+                char c = this->Line[i];
+
                 if (isdigit(c) && this->CurrentType!=String){
                     if (this->CurrentType!=Double)
                         this->CurrentType = Integer;
@@ -13,6 +15,9 @@ namespace SHOM {
                     else
                         goto store;
                 }
+
+                else if ((c=='+' || c=='-') && (i<this->Line.size()-1 && isdigit(this->Line[i+1])))
+                    goto inc;
 
                 else if (this->CurrentType!=String && c=='.'){
                     if (this->CurrentType==Double)
@@ -42,7 +47,8 @@ namespace SHOM {
                     }
                 }
 
-                this->Token+=c;
+                inc:
+                    this->Token+=c;
             }   
 
             this->LineNo++;

@@ -1,5 +1,9 @@
 #define TOP Interpreter.Memory.top(); Interpreter.Memory.pop()
-#define GETAB auto a = TOP; auto b = TOP;
+#define TRYOP(o) \
+    auto a = TOP; auto b = TOP; \
+    try { b o a; } \
+    catch(...) { Interpreter.Error("Mismatched types"); }
+
 
 namespace SHOM {
     namespace Syntax {
@@ -7,36 +11,23 @@ namespace SHOM {
             {'~', [](){
                 cout << (Interpreter.Memory.empty() ? "" : Interpreter.Memory.top().Value);
             }},
-
             {'`', [](){
                 if (!Interpreter.Memory.empty())
                     Interpreter.Memory.pop();
             }},
-
             {'_', [](){
                 while (!Interpreter.Memory.empty())
                     Interpreter.Memory.pop();
             }},
 
-            {'+', [](){
-                GETAB;
-                b+a;
-            }},
+            {'+', [](){ TRYOP(+); }},
+            {'-', [](){ TRYOP(-); }},
+            {'*', [](){ TRYOP(*); }},
+            {'/', [](){ TRYOP(/); }},
 
-            {'-', [](){
-                    GETAB;
-                    b-a;
-            }},
-
-            {'*', [](){
-                    GETAB;
-                    b*a;
-            }},
-
-            {'/', [](){
-                    GETAB;
-                    b/a;
-            }},
+            {'&', [](){ TRYOP(&); }},
+            {'|', [](){ TRYOP(|); }},
+            {'=', [](){ TRYOP(=); }},
         };
     }
 }
