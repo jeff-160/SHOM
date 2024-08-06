@@ -58,7 +58,7 @@ namespace SHOM {
             else if (c=='"'){
                 if (this->CurrentType!=String){
                     this->CurrentType = String;
-                    continue;
+                    goto inc;
                 }
                 else
                     goto store;
@@ -89,6 +89,7 @@ namespace SHOM {
                                 this->Memory.push({stod(this->Token), this->CurrentType});
                                 break;
                             case String:
+                                this->Token.erase(this->Token.begin());
                                 this->Memory.push({this->Token, this->CurrentType});
                                 break;
                         }

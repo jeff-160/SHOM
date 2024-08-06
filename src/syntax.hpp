@@ -17,6 +17,9 @@
     } \
     catch(...) { Interpreter.Error("Invalid cast"); }
 
+#define CHECKBLOCKS \
+    if (Interpreter.Blocks.empty()) Interpreter.Error("Expected conditional block")
+
 
 namespace SHOM {
     namespace Syntax {
@@ -64,8 +67,7 @@ namespace SHOM {
             {'S', [](){ CONVERT(String, string); }},
 
             {'?', [](){
-                while (Interpreter.Blocks.size()>2)
-                    Interpreter.Blocks.pop_front();
+                CHECKBLOCKS;
 
                 bool cond;
                 if (Interpreter.Memory.empty())
@@ -79,19 +81,28 @@ namespace SHOM {
                 string code;
                 
                 try{
-                    code = Interpreter.Blocks.at(!cond);
+                    size_t s = Interpreter.Blocks.size();
+                    code = Interpreter.Blocks.at(s>=2 ? s-1-cond : 0);
                 }
                 catch(...){
                     code = "";
                 }
 
                 Interpreter.Blocks.clear();
-                
                 Interpreter.InterpreteLine(code);
             }},
 
             {':', [](){
+                CHECKBLOCKS;
+
                 long long range = TOP.Type==String ? TOP.Cast<string>().size() : TOP.Cast<long long>();
+
+                string code = Interpreter.Blocks.back();
+                Interpreter.Blocks.clear();
+
+                for (long long i=0;i<range;i++)
+                    Interpreter.InterpreteLine(code);
+
             }}
         };
     }
