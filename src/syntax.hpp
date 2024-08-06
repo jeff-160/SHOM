@@ -4,8 +4,9 @@
     if (Interpreter.Memory.size()<2) \
         Interpreter.Error("Insufficient data in stack"); \
     auto a = TOP; auto b = TOP; \
-    try { b o a; } \
-    catch(...) { Interpreter.Error("Mismatched types"); }
+    b o a;
+    // try { b o a; } \
+    // catch(...) { Interpreter.Error("Mismatched types"); }
 
 #define CONVERT(d, t) \
     MemoryCell& a = Interpreter.Memory.top(); \
@@ -71,10 +72,16 @@ namespace SHOM {
                     Interpreter.Memory.pop();
                 }
 
-                string code = Interpreter.Blocks[!cond];
+                string code;
+                
+                try{
+                    code = Interpreter.Blocks.at(!cond);
+                }
+                catch(...){
+                    code = "";
+                }
 
-                while (!Interpreter.Blocks.empty())
-                    Interpreter.Blocks.pop_back();
+                Interpreter.Blocks.clear();
                 
                 Interpreter.InterpreteLine(code);
             }},

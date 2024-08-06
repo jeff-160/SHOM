@@ -188,7 +188,7 @@ namespace SHOM {
         }
         
         else if (this->Type==Double)
-            Interpreter.Memory.push({pow(this->Cast<double>(), a.Cast<double>()), Integer});
+            Interpreter.Memory.push({pow(this->Cast<double>(), a.Cast<double>()), Double});
     }
 
     void MemoryCell::operator%(MemoryCell const& a){
