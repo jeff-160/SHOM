@@ -2,7 +2,7 @@
     if (this->Type==String || a.Type==String) throw 0
 
 #define NUMOP(a, b, o, f, t) \
-    Interpreter.Memory.push({to_string((a->Cast<f>() o b.Cast<f>())), t})
+    Interpreter.Memory.push({(a->Cast<f>() o b.Cast<f>()), t})
 
 #define NUMOPS(o) \
     else if (this->Type==Integer) { \
@@ -14,7 +14,7 @@
 
 #define LOGOP(x, y, o) \
     if (a.Type==String || this->Type==String){ \
-        Interpreter.Memory.push({to_string(x o y), Integer}); \
+        Interpreter.Memory.push({(x o y), Integer}); \
     } \
     NUMOPS(o);
 
@@ -87,6 +87,9 @@ namespace SHOM {
         enum DataType CurrentType = Null;
         string Token = "";
 
+        bool InBlock = false;
+        deque<string> Blocks;
+
         inline string Trim(string s){
             s.erase(find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !isspace(ch); }).base(), s.end());
             s.erase(s.begin(), find_if(s.begin(), s.end(), [](unsigned char ch) { return !isspace(ch); }));
@@ -104,6 +107,7 @@ namespace SHOM {
         }
 
         void Interprete(ifstream& file);
+        void InterpreteLine(string line);
     };
     
     SHOMInterpreter Interpreter;
@@ -172,11 +176,11 @@ namespace SHOM {
             for (long long i=0;i<a.Cast<long long>();i++)
                 r*=x;
 
-            Interpreter.Memory.push({to_string(r), Integer});
+            Interpreter.Memory.push({r, Integer});
         }
         
         else if (this->Type==Double)
-            Interpreter.Memory.push({to_string(pow(this->Cast<double>(), a.Cast<double>())), Integer});
+            Interpreter.Memory.push({pow(this->Cast<double>(), a.Cast<double>()), Integer});
     }
 
     void MemoryCell::operator%(MemoryCell const& a){
@@ -187,7 +191,7 @@ namespace SHOM {
         
         else if(this->Type==Double){
             double x = this->Cast<double>(), y = a.Cast<double>();   
-            Interpreter.Memory.push({to_string(x-(int)(x/y)*y), Double});
+            Interpreter.Memory.push({x-(int)(x/y)*y, Double});
         }
     }
 }

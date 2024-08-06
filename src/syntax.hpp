@@ -57,6 +57,20 @@ namespace SHOM {
             {'I', [](){ CONVERT(Integer, long long); }},
             {'D', [](){ CONVERT(Double, double); }},
             {'S', [](){ CONVERT(String, string); }},
+
+            {'?', [](){
+                while (Interpreter.Blocks.size()>2)
+                    Interpreter.Blocks.pop_front();
+
+                Interpreter.Memory.top() & MemoryCell({1, Integer});
+
+                auto c = Interpreter.Memory.empty() ? 0 : Interpreter.Memory.top().Cast<long long>();
+                Interpreter.Memory.pop();
+                Interpreter.InterpreteLine(c ? Interpreter.Blocks.front() : Interpreter.Blocks.back());
+
+                while (!Interpreter.Blocks.empty())
+                    Interpreter.Blocks.pop_back();
+            }},
         };
     }
 }
