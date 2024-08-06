@@ -9,6 +9,15 @@ namespace SHOM {
                         this->CurrentType = Integer;
                 }
 
+                else if (this->CurrentType==String && i<this->Line.size()-1 && c=='\\'){
+                    if (!Syntax::Escape[this->Line[i+1]])
+                        Error("Unknown escape sequence");
+                    
+                    this->Token+=Syntax::Escape[this->Line[i+1]];
+                    i++;
+                    continue;
+                }
+
                 else if (c=='"'){
                     if (this->CurrentType!=String)
                         this->CurrentType = String;
@@ -59,6 +68,9 @@ namespace SHOM {
                 inc:
                     this->Token+=c;
             }   
+
+            if (this->CurrentType==String)
+                Error("Unterminated string");
 
             this->LineNo++;
         }

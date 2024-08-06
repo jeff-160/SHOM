@@ -8,6 +8,7 @@
 #include <variant>
 #include <cmath>
 #include <type_traits>
+#include <regex>
 
 using namespace std;
 using namespace std::chrono;

@@ -70,7 +70,8 @@ namespace SHOM {
         void operator/(MemoryCell const& a);
         void operator|(MemoryCell const& a);
         void operator&(MemoryCell const& a);
-        void operator=(MemoryCell const& a);
+        void operator==(MemoryCell const& a);
+        void operator!=(MemoryCell const& a);
         void operator>(MemoryCell const& a);
         void operator<(MemoryCell const& a);
         void operator^(MemoryCell const& a);
@@ -130,6 +131,9 @@ namespace SHOM {
     }
 
     void MemoryCell::operator/(MemoryCell const& a){
+        if (!a.Cast<long long>())
+            Interpreter.Error("Division by 0");
+
         SERR;
         NUMOPS(/);
     }
@@ -142,8 +146,12 @@ namespace SHOM {
         LOGOP(!this->Cast<string>().empty(), !a.Cast<string>().empty(), ||);
     }
     
-    void MemoryCell::operator=(MemoryCell const& a){
+    void MemoryCell::operator==(MemoryCell const& a){
         LOGOP(this->Cast<string>(), a.Cast<string>(), ==);
+    }
+    
+    void MemoryCell::operator!=(MemoryCell const& a){
+        LOGOP(this->Cast<string>(), a.Cast<string>(), !=);
     }
 
     void MemoryCell::operator>(MemoryCell const& a){
