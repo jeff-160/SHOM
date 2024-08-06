@@ -1,11 +1,16 @@
-#define INBLOCK !this->BlockTree.empty() && this->BlockTree.back()=='{'
+#define TREELAST(c) (!this->BlockTree.empty() && this->BlockTree.back()==c)
+#define INBLOCK TREELAST('{')
+#define INSTRING TREELAST('"')
+
 
 namespace SHOM {
     void SHOMInterpreter::InterpreteLine(string line){
+        line+=" ";
+
         for (size_t i=0;i<line.size();i++){
             char c = line[i];
 
-            if (this->CurrentType!=String){
+            if (this->CurrentType!=String && !INSTRING){
                 if (c=='{'){
                     this->BlockTree.push_back(c);
 
@@ -23,8 +28,16 @@ namespace SHOM {
                 }
             }
 
-            if (INBLOCK){
+            if (INBLOCK || INSTRING){
                 this->Blocks.back()+=c;
+
+                if (c=='"' && !(i && line[i-1]=='\\')){
+                    if (INSTRING)
+                        this->BlockTree.pop_back();
+                    else
+                        this->BlockTree.push_back('"');
+                }
+
                 continue;
             }
 
@@ -62,7 +75,7 @@ namespace SHOM {
             }
 
             else {
-                if (this->CurrentType!=String && !(INBLOCK)){
+                if (this->CurrentType!=String && !INBLOCK){
                     this->Token = Trim(this->Token);
                     
                     store:

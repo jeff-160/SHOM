@@ -1,17 +1,21 @@
-#define TOP Interpreter.Memory.top(); Interpreter.Memory.pop()
+#define TOP Interpreter.Memory.top()
+
+#define GETTOP TOP; Interpreter.Memory.pop()
 
 #define TRYOP(o) \
     if (Interpreter.Memory.size()<2) \
         Interpreter.Error("Insufficient data in stack"); \
-    auto a = TOP; auto b = TOP; \
-    b o a;
-    // try { b o a; } \
-    // catch(...) { Interpreter.Error("Mismatched types"); }
+    auto a = GETTOP; auto b = GETTOP; \
+    try { b o a; } \
+    catch(...) { Interpreter.Error("Mismatched types"); }
 
 #define CONVERT(d, t) \
-    MemoryCell& a = Interpreter.Memory.top(); \
-    a.Value = a.Cast<t>(); \
-    a.Type = d; \
+    try{ \
+        MemoryCell& a = TOP; \
+        a.Value = a.Cast<t>(); \
+        a.Type = d; \
+    } \
+    catch(...) { Interpreter.Error("Invalid cast"); }
 
 
 namespace SHOM {
@@ -29,7 +33,7 @@ namespace SHOM {
                 if (Interpreter.Memory.empty())
                     cout << "";
                 else
-                    visit([](auto&& arg){ cout << arg; }, Interpreter.Memory.top().Value);
+                    visit([](auto&& arg){ cout << arg; }, TOP.Value);
             }},
             {'`', [](){
                 if (!Interpreter.Memory.empty())
@@ -67,8 +71,8 @@ namespace SHOM {
                 if (Interpreter.Memory.empty())
                     cond = 0;
                 else{
-                    Interpreter.Memory.top() & MemoryCell({1, Integer});
-                    cond = Interpreter.Memory.top().Cast<long long>();
+                    TOP & MemoryCell({1, Integer});
+                    cond = TOP.Cast<long long>();
                     Interpreter.Memory.pop();
                 }
 
@@ -85,6 +89,10 @@ namespace SHOM {
                 
                 Interpreter.InterpreteLine(code);
             }},
+
+            {':', [](){
+                long long range = TOP.Type==String ? TOP.Cast<string>().size() : TOP.Cast<long long>();
+            }}
         };
     }
 }

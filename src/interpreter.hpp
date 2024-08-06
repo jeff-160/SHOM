@@ -83,7 +83,7 @@ namespace SHOM {
         }
 
         inline void Error(const string& message){
-            cout << this->File+":"+to_string(this->LineNo)+": "+message+"\n\t"+this->Line;
+            cout << endl << this->File+":"+to_string(this->LineNo)+": "+message+"\n\t"+this->Line;
             exit(0);
         }
 
@@ -106,17 +106,12 @@ namespace SHOM {
         else {
             auto v = get<string>(this->Value);
             
-            try {
-                if constexpr (is_same_v<T, long long>)
-                    return stoll(v);
-                else if constexpr (is_same_v<T, double>)
-                    return stod(v);
-                else
-                    return v;
-            }
-            catch(...) {
-                Interpreter.Error("Invalid conversion");
-            }       
+            if constexpr (is_same_v<T, long long>)
+                return stoll(v);
+            else if constexpr (is_same_v<T, double>)
+                return stod(v);
+            else
+                return v;
         }
     }
 
