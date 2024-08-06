@@ -43,26 +43,7 @@ namespace SHOM {
         DataType Type;
 
         template <typename T>
-        T Cast() const {
-            if (this->Type==Integer){
-                auto v = get<long long>(this->Value);
-                IMPCAST;
-            }
-            else if (this->Type==Double){
-                auto v = get<double>(this->Value);
-                IMPCAST;
-            }
-            else {
-                auto v = get<string>(this->Value);
-                
-                if constexpr (is_same_v<T, long long>)
-                    return stoll(v);
-                else if constexpr (is_same_v<T, double>)
-                    return stod(v);
-                else
-                    return v;
-            }
-        }
+        T Cast() const;
 
         void operator+(MemoryCell const& a);
         void operator-(MemoryCell const& a);
@@ -87,8 +68,8 @@ namespace SHOM {
         enum DataType CurrentType = Null;
         string Token = "";
 
-        bool InBlock = false;
         deque<string> Blocks;
+        vector<char> BlockTree;
 
         inline string Trim(string s){
             s.erase(find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !isspace(ch); }).base(), s.end());
@@ -111,6 +92,33 @@ namespace SHOM {
     };
     
     SHOMInterpreter Interpreter;
+
+    template <typename T>
+    T MemoryCell::Cast() const {
+        if (this->Type==Integer){
+            auto v = get<long long>(this->Value);
+            IMPCAST;
+        }
+        else if (this->Type==Double){
+            auto v = get<double>(this->Value);
+            IMPCAST;
+        }
+        else {
+            auto v = get<string>(this->Value);
+            
+            try {
+                if constexpr (is_same_v<T, long long>)
+                    return stoll(v);
+                else if constexpr (is_same_v<T, double>)
+                    return stod(v);
+                else
+                    return v;
+            }
+            catch(...) {
+                Interpreter.Error("Invalid conversion");
+            }       
+        }
+    }
 
     void MemoryCell::operator+(MemoryCell const& a){
         if (this->Type==String || a.Type==String)

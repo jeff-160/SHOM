@@ -9,6 +9,7 @@
 #include <cmath>
 #include <type_traits>
 #include <deque>
+#include <vector>
 
 using namespace std;
 using namespace std::chrono;

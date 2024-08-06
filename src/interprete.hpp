@@ -1,20 +1,29 @@
+#define INBLOCK !this->BlockTree.empty() && this->BlockTree.back()=='{'
+
 namespace SHOM {
     void SHOMInterpreter::InterpreteLine(string line){
         for (size_t i=0;i<line.size();i++){
             char c = line[i];
 
-            if (c=='{'){
-                this->InBlock = true;
-                this->Blocks.push_back("");
-                goto store;
-            }
-            
-            if (c=='}'){
-                this->InBlock = false;
-                continue;
+            if (this->CurrentType!=String){
+                if (c=='{'){
+                    this->BlockTree.push_back(c);
+
+                    if (this->BlockTree.size()==1){
+                        this->Blocks.push_back("");
+                        continue;
+                    }
+                }
+
+                else if (c=='}'){
+                    if (this->BlockTree.empty())
+                        Error("Mismatched brace");
+                    else
+                        this->BlockTree.pop_back();
+                }
             }
 
-            if (this->InBlock){
+            if (INBLOCK){
                 this->Blocks.back()+=c;
                 continue;
             }
@@ -53,7 +62,7 @@ namespace SHOM {
             }
 
             else {
-                if (this->CurrentType!=String){
+                if (this->CurrentType!=String && !(INBLOCK)){
                     this->Token = Trim(this->Token);
                     
                     store:
@@ -94,5 +103,8 @@ namespace SHOM {
             this->InterpreteLine(this->Line);
             this->LineNo++;
         }
+
+        if (!this->BlockTree.empty())
+            Error("Unclosed block");
     }
 }
