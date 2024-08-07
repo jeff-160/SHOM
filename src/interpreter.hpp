@@ -175,7 +175,6 @@ namespace SHOM {
         
         else if (this->Type==Integer){
             long long x = this->Cast<long long>(), r = 1;
-
             for (long long i=0;i<a.Cast<long long>();i++)
                 r*=x;
 

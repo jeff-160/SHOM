@@ -46,6 +46,16 @@ namespace SHOM {
                 while (!Interpreter.Memory.empty())
                     Interpreter.Memory.pop();
             }},
+            {'\\', [](){
+                auto a = GETTOP;
+                auto b = GETTOP;
+
+                Interpreter.Memory.push(a);
+                Interpreter.Memory.push(b);
+            }},
+            {';', [](){
+                Interpreter.Memory.push(TOP);
+            }},
 
             {'+', [](){ TRYOP(+); }},
             {'-', [](){ TRYOP(-); }},
@@ -79,10 +89,9 @@ namespace SHOM {
                 }
 
                 string code;
-                
                 try{
                     size_t s = Interpreter.Blocks.size();
-                    code = Interpreter.Blocks.at(s>=2 ? s-1-cond : 0);
+                    code = Interpreter.Blocks.at(s>=2 ? s-1-cond : !cond);
                 }
                 catch(...){
                     code = "";
@@ -91,7 +100,6 @@ namespace SHOM {
                 Interpreter.Blocks.clear();
                 Interpreter.InterpreteLine(code);
             }},
-
             {':', [](){
                 CHECKBLOCKS;
 
@@ -102,7 +110,6 @@ namespace SHOM {
 
                 for (long long i=0;i<range;i++)
                     Interpreter.InterpreteLine(code);
-
             }}
         };
     }
