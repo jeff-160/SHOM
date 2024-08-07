@@ -71,6 +71,8 @@ namespace SHOM {
         deque<string> Blocks;
         vector<char> BlockTree;
 
+        long long Iterator = -1;
+
         inline string Trim(string s){
             s.erase(find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !isspace(ch); }).base(), s.end());
             s.erase(s.begin(), find_if(s.begin(), s.end(), [](unsigned char ch) { return !isspace(ch); }));

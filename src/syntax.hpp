@@ -2,9 +2,11 @@
 
 #define GETTOP TOP; Interpreter.Memory.pop()
 
+#define CHECKSIZE(s) \
+    if (Interpreter.Memory.size()<s) Interpreter.Error("Insufficient data in stack")
+
 #define TRYOP(o) \
-    if (Interpreter.Memory.size()<2) \
-        Interpreter.Error("Insufficient data in stack"); \
+    CHECKSIZE(2); \
     auto a = GETTOP; auto b = GETTOP; \
     try { b o a; } \
     catch(...) { Interpreter.Error("Mismatched types"); }
@@ -54,7 +56,13 @@ namespace SHOM {
                 Interpreter.Memory.push(b);
             }},
             {';', [](){
+                CHECKSIZE(1);
                 Interpreter.Memory.push(TOP);
+            }},
+            {'(', [](){
+                string s;
+                cin >> s;
+                Interpreter.Memory.push({s, String});
             }},
 
             {'+', [](){ TRYOP(+); }},
@@ -75,6 +83,25 @@ namespace SHOM {
             {'I', [](){ CONVERT(Integer, long long); }},
             {'D', [](){ CONVERT(Double, double); }},
             {'S', [](){ CONVERT(String, string); }},
+
+            {'@', [](){
+                CHECKSIZE(2);
+                auto i = GETTOP;
+                auto a = GETTOP;
+
+                if (a.Type!=String)
+                    Interpreter.Error("Cannot apply indexing to primitive type");
+
+                if (i.Type!=Integer)
+                    Interpreter.Error("Index must be an integer");
+
+                try {
+                    Interpreter.Memory.push(MemoryCell({string(1, a.Cast<string>().at(i.Cast<long long>())), String}));
+                }
+                catch(...){
+                    Interpreter.Error("Invalid index");
+                }
+            }},
 
             {'?', [](){
                 CHECKBLOCKS;
@@ -103,13 +130,22 @@ namespace SHOM {
             {':', [](){
                 CHECKBLOCKS;
 
-                long long range = TOP.Type==String ? TOP.Cast<string>().size() : TOP.Cast<long long>();
+                long long range = Interpreter.Memory.empty() ? 0 : TOP.Type==String ? TOP.Cast<string>().size() : TOP.Cast<long long>();
 
                 string code = Interpreter.Blocks.back();
                 Interpreter.Blocks.clear();
 
-                for (long long i=0;i<range;i++)
+                Interpreter.Iterator = 0;
+                for (long long i=0;i<range;i++){
                     Interpreter.InterpreteLine(code);
+                    Interpreter.Iterator++;
+                }
+                Interpreter.Iterator = -1;
+            }},
+            {'i', [](){
+                Interpreter.Iterator<0 ? 
+                    Interpreter.Error("Iterator can only be accessed within a loop") : 
+                    Interpreter.Memory.push({Interpreter.Iterator, Integer});
             }}
         };
     }
