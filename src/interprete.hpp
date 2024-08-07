@@ -5,7 +5,7 @@
 
 namespace SHOM {
     void SHOMInterpreter::InterpreteLine(string line){
-        line+=" ";
+        line = Trim(line)+" ";
 
         for (size_t i=0;i<line.size();i++){
             char c = line[i];
