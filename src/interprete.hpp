@@ -1,6 +1,6 @@
 #define TREELAST(c) (!this->BlockTree.empty() && this->BlockTree.back()==c)
-#define INBLOCK TREELAST('{')
-#define INSTRING TREELAST('"')
+#define INBLOCK TREELAST(Syntax::Braces[0])
+#define INSTRING TREELAST(Syntax::Quote)
 
 
 namespace SHOM {
@@ -11,7 +11,7 @@ namespace SHOM {
             char c = line[i];
 
             if (this->CurrentType!=String && !INSTRING){
-                if (c=='{'){
+                if (c==Syntax::Braces[0]){
                     this->BlockTree.push_back(c);
 
                     if (this->BlockTree.size()==1){
@@ -20,9 +20,9 @@ namespace SHOM {
                     }
                 }
 
-                else if (c=='}'){
+                else if (c==Syntax::Braces[1]){
                     if (this->BlockTree.empty())
-                        Error("Mismatched brace");
+                        this->Error("Mismatched brace");
                     else
                         this->BlockTree.pop_back();
                 }
@@ -31,11 +31,11 @@ namespace SHOM {
             if (INBLOCK || INSTRING){
                 this->Blocks.back()+=c;
 
-                if (c=='"' && !(i && line[i-1]=='\\')){
+                if (c==Syntax::Quote && !(i && line[i-1]=='\\')){
                     if (INSTRING)
                         this->BlockTree.pop_back();
                     else
-                        this->BlockTree.push_back('"');
+                        this->BlockTree.push_back(Syntax::Quote);
                 }
 
                 continue;
@@ -48,14 +48,14 @@ namespace SHOM {
 
             else if (this->CurrentType==String && i<line.size()-1 && c=='\\'){
                 if (!Syntax::Escape[line[i+1]])
-                    Error("Unknown escape sequence");
+                    this->Error("Unknown escape sequence");
                 
                 this->Token+=Syntax::Escape[line[i+1]];
                 i++;
                 continue;
             }
 
-            else if (c=='"'){
+            else if (c==Syntax::Quote){
                 if (this->CurrentType!=String){
                     this->CurrentType = String;
                     goto inc;
@@ -97,6 +97,8 @@ namespace SHOM {
 
                     if (Syntax::Instructions[c])
                         Syntax::Instructions[c]();
+                    else if (!isspace(c) && c!=Syntax::Quote && c!=Syntax::Braces[0] && c!=Syntax::Braces[1])
+                        this->Error("Unrecognised instruction");
 
                     Reset();
 
@@ -109,7 +111,7 @@ namespace SHOM {
         }
         
         if (this->CurrentType==String)
-            Error("Unterminated string");
+            this->Error("Unterminated string");
     }
 
     void SHOMInterpreter::Interprete(ifstream& file){
@@ -119,6 +121,6 @@ namespace SHOM {
         }
 
         if (!this->BlockTree.empty())
-            Error("Unclosed block");
+            this->Error("Unclosed block");
     }
 }

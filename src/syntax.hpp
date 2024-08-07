@@ -25,6 +25,9 @@
 
 namespace SHOM {
     namespace Syntax {
+        char Quote = '"';
+        string Braces = "{}";
+
         unordered_map<char, char> Escape = {
             {'n', '\n'},
             {'t', '\t'},
