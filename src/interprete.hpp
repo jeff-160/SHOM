@@ -41,6 +41,9 @@ namespace SHOM {
                 continue;
             }
 
+            if (c==Syntax::Array[0])
+                this->InArray = true;
+
             if (isdigit(c) && this->CurrentType!=String){
                 if (this->CurrentType!=Double)
                     this->CurrentType = Integer;
@@ -48,7 +51,7 @@ namespace SHOM {
 
             else if (this->CurrentType==String && i<line.size()-1 && c=='\\'){
                 if (!Syntax::Escape[line[i+1]])
-                    this->Error("Unknown escape sequence");
+                    this->Error("Unknown escape sequence: \\", string(1, c));
                 
                 this->Token+=Syntax::Escape[line[i+1]];
                 i++;
@@ -81,24 +84,35 @@ namespace SHOM {
                     store:
 
                     if (!this->Token.empty()){
+                        MemoryCell m;
+
                         switch (this->CurrentType){
                             case Integer:
-                                this->Memory.push({stoll(this->Token), this->CurrentType});
+                                m = {stoll(this->Token), this->CurrentType};
                                 break;
                             case Double:
-                                this->Memory.push({stod(this->Token), this->CurrentType});
+                                m = {stod(this->Token), this->CurrentType};
                                 break;
                             case String:
                                 this->Token.erase(this->Token.begin());
-                                this->Memory.push({this->Token, this->CurrentType});
+                                m = {this->Token, this->CurrentType};
                                 break;
                         }
+
+                        this->InArray ? this->CurrentArray.push_back(m) : this->Memory.push(m);
+                    }
+                    
+                    if (c==Syntax::Array[1]){
+                        this->InArray = false;
+
+                        this->Memory.push({"", Array, this->CurrentArray});
+                        this->CurrentArray.clear();
                     }
 
                     if (Syntax::Instructions[c])
                         Syntax::Instructions[c]();
-                    else if (!isspace(c) && c!=Syntax::Quote && c!=Syntax::Braces[0] && c!=Syntax::Braces[1])
-                        this->Error("Unrecognised instruction");
+                    else if (!isspace(c) && c!=Syntax::Quote && c!=Syntax::Braces[0] && c!=Syntax::Braces[1] && c!=Syntax::Array[0] && c!=Syntax::Array[1])
+                        this->Error("Unrecognised instruction: ", string(1, c));
 
                     Reset();
 

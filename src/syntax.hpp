@@ -9,7 +9,7 @@
     CHECKSIZE(2); \
     auto a = GETTOP; auto b = GETTOP; \
     try { b o a; } \
-    catch(...) { Interpreter.Error("Mismatched types"); }
+    catch(...) { Interpreter.Error("Invalid operation"); }
 
 #define CONVERT(d, t) \
     try{ \
@@ -17,7 +17,7 @@
         a.Value = a.Cast<t>(); \
         a.Type = d; \
     } \
-    catch(...) { Interpreter.Error("Invalid cast"); }
+    catch(...) { Interpreter.Error("Invalid cast:"); }
 
 #define CHECKBLOCKS \
     if (Interpreter.Blocks.empty()) Interpreter.Error("Expected conditional block")
@@ -27,6 +27,7 @@ namespace SHOM {
     namespace Syntax {
         char Quote = '"';
         string Braces = "{}";
+        string Array = "[]";
 
         unordered_map<char, char> Escape = {
             {'n', '\n'},
@@ -37,13 +38,20 @@ namespace SHOM {
         };
 
         unordered_map<char, function<void()>> Instructions = {
+            {'(', [](){
+                string s;
+                cin >> s;
+                Interpreter.Memory.push({s, String});
+            }},
             {'~', [](){
                 if (Interpreter.Memory.empty())
                     cout << "";
-                else
-                    visit([](auto&& arg){ cout << arg; }, TOP.Value);
+
+                else{
+                    cout << TOP.Cast<string>();
+                }
             }},
-            {'`', [](){
+            {',', [](){
                 if (!Interpreter.Memory.empty())
                     Interpreter.Memory.pop();
             }},
@@ -61,11 +69,6 @@ namespace SHOM {
             {';', [](){
                 CHECKSIZE(1);
                 Interpreter.Memory.push(TOP);
-            }},
-            {'(', [](){
-                string s;
-                cin >> s;
-                Interpreter.Memory.push({s, String});
             }},
 
             {'+', [](){ TRYOP(+); }},
@@ -93,16 +96,16 @@ namespace SHOM {
                 auto a = GETTOP;
 
                 if (a.Type!=String)
-                    Interpreter.Error("Cannot apply indexing to primitive type");
+                    Interpreter.Error("Cannot apply indexing to primitive type: ", a.Cast<string>());
 
                 if (i.Type!=Integer)
-                    Interpreter.Error("Index must be an integer");
+                    Interpreter.Error("Index must be an integer: ", i.Cast<string>());
 
                 try {
                     Interpreter.Memory.push(MemoryCell({string(1, a.Cast<string>().at(i.Cast<long long>())), String}));
                 }
                 catch(...){
-                    Interpreter.Error("Invalid index");
+                    Interpreter.Error("Invalid index: ", i.Cast<string>());
                 }
             }},
 

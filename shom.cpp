@@ -1,4 +1,5 @@
 #include "src/include.hpp"
+#define TIME high_resolution_clock::now()
 
 int main(int argc, char* argv[]){
     // fix the error function when youre free
@@ -15,9 +16,9 @@ int main(int argc, char* argv[]){
 
     SHOM::Interpreter.File = argv[1];
 
-    auto start = high_resolution_clock::now();
+    auto start = TIME;
     SHOM::Interpreter.Interprete(file);
 
-    cout << "\nProcess exited after " << (float)(duration_cast<microseconds>(high_resolution_clock::now()-start).count())/1e6 << " seconds";
+    cout << "\nProcess exited after " << (float)(duration_cast<microseconds>(TIME-start).count())/1e6 << " seconds";
     file.close();
 }

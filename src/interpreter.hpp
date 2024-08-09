@@ -1,5 +1,8 @@
-#define SERR \
-    if (this->Type==String || a.Type==String) throw 0
+#define ETERR(t) \
+    if (this->Type==t || a.Type==t) throw 0
+
+#define ARRERR \
+    if ((this->Type==Array && a.Type!=Array) || (this->Type!=Array && a.Type==Array)) throw 0;
 
 #define NUMOP(a, b, o, f, t) \
     Interpreter.Memory.push({(a->Cast<f>() o b.Cast<f>()), t})
@@ -35,12 +38,14 @@ namespace SHOM {
         Null,
         Integer,
         Double,
-        String
+        String,
+        Array
     };
 
     struct MemoryCell {
         variant<long long, double, string> Value;
         DataType Type;
+        vector<MemoryCell> ArrayValue;
 
         template <typename T>
         T Cast() const;
@@ -68,6 +73,9 @@ namespace SHOM {
         enum DataType CurrentType = Null;
         string Token = "";
 
+        bool InArray = false;
+        vector<MemoryCell> CurrentArray;
+
         deque<string> Blocks;
         vector<char> BlockTree;
 
@@ -84,8 +92,8 @@ namespace SHOM {
             Token.clear();
         }
 
-        inline void Error(const string& message){
-            cout << endl << this->File+":"+to_string(this->LineNo)+": "+message+"\n\t"+this->Line;
+        inline void Error(const string& message, string spec=""){
+            cout << endl << this->File+":"+to_string(this->LineNo)+": "+message+spec+"\n\t"+this->Line;
             exit(0);
         }
 
@@ -105,6 +113,16 @@ namespace SHOM {
             auto v = get<double>(this->Value);
             IMPCAST;
         }
+        else if (this->Type==Array){
+            if constexpr (is_same_v<T, string>){
+                string s = "[";
+                for (size_t i=0;i<this->ArrayValue.size();i++)
+                    s+=this->ArrayValue[i].Cast<string>()+(i<this->ArrayValue.size()-1 ? " " : "");
+                return s+"]";
+            }
+            else 
+                throw 0;
+        }
         else {
             auto v = get<string>(this->Value);
             
@@ -118,23 +136,35 @@ namespace SHOM {
     }
 
     void MemoryCell::operator+(MemoryCell const& a){
+        ARRERR;
+        
         if (this->Type==String || a.Type==String)
             Interpreter.Memory.push({this->Cast<string>()+a.Cast<string>(), String});
+
+        if (this->Type==Array && a.Type==Array){
+            for (MemoryCell i : a.ArrayValue)
+                this->ArrayValue.push_back(i);
+            Interpreter.Memory.push({"", Array, this->ArrayValue});
+        }
             
         NUMOPS(+);
     }
 
     void MemoryCell::operator-(MemoryCell const& a){
-        SERR;
+        ETERR(String);
+        ETERR(Array);
         NUMOPS(-);
     }
 
     void MemoryCell::operator*(MemoryCell const& a){
-        if (a.Type==String)
-            Interpreter.Memory.push({a.Cast<string>()*this->Cast<long long>(), String});
+        if (this->Type==Array && a.Type==Array)
+            throw 0;
 
-        else if (this->Type==String)
-            Interpreter.Memory.push({this->Cast<string>()*a.Cast<long long>(), String});
+        MemoryCell x = *this, y = a;
+        if (y.Type==String)
+            swap(x, y);  
+        if (x.Type==String)
+            Interpreter.Memory.push({x.Cast<string>()*y.Cast<long long>(), String});
 
         NUMOPS(*);
     }
@@ -143,7 +173,8 @@ namespace SHOM {
         if (!a.Cast<long long>())
             Interpreter.Error("Division by 0");
 
-        SERR;
+        ETERR(String);
+        ETERR(Array);
         NUMOPS(/);
     }
 
@@ -188,7 +219,7 @@ namespace SHOM {
     }
 
     void MemoryCell::operator%(MemoryCell const& a){
-        SERR;
+        ETERR(String);
 
         else if(this->Type==Integer)
             NUMOP(this, a, %, long long, Integer);
