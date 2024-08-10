@@ -22,7 +22,7 @@ namespace SHOM {
 
                 else if (c==Syntax::Braces[1]){
                     if (this->BlockTree.empty())
-                        this->Error("Mismatched brace");
+                        this->Error("Mismatched block brace");
                     else
                         this->BlockTree.pop_back();
                 }
@@ -41,8 +41,11 @@ namespace SHOM {
                 continue;
             }
 
-            if (c==Syntax::Array[0])
+            if (c==Syntax::Array[0]){
+                if (this->InArray)
+                    this->Error("Unexpected array brace");
                 this->InArray = true;
+            }
 
             if (isdigit(c) && this->CurrentType!=String){
                 if (this->CurrentType!=Double)
@@ -109,8 +112,11 @@ namespace SHOM {
                         this->CurrentArray.clear();
                     }
 
-                    if (Syntax::Instructions[c])
+                    if (Syntax::Instructions[c]){
+                        if (this->InArray)
+                            this->Error("Unexpected instruction: ", string(1, c));
                         Syntax::Instructions[c]();
+                    }
                     else if (!isspace(c) && c!=Syntax::Quote && c!=Syntax::Braces[0] && c!=Syntax::Braces[1] && c!=Syntax::Array[0] && c!=Syntax::Array[1])
                         this->Error("Unrecognised instruction: ", string(1, c));
 
@@ -126,6 +132,8 @@ namespace SHOM {
         
         if (this->CurrentType==String)
             this->Error("Unterminated string");
+        if (this->InArray)
+            this->Error("Unclosed array");
     }
 
     void SHOMInterpreter::Interprete(ifstream& file){

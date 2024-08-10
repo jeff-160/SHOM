@@ -22,7 +22,11 @@
     NUMOPS(o);
 
 #define IMPCAST \
-    if constexpr (is_same_v<T, string>) return to_string(v); \
+    if constexpr (is_same_v<T, string>) { \
+        ostringstream oss; \
+        oss << setprecision(16) << v; \
+        return oss.str(); \
+    } \
     else return (T)v; \
 
 
@@ -170,11 +174,11 @@ namespace SHOM {
     }
 
     void MemoryCell::operator/(MemoryCell const& a){
-        if (!a.Cast<long long>())
-            Interpreter.Error("Division by 0");
-
         ETERR(String);
         ETERR(Array);
+
+        if (!a.Cast<long long>())
+            Interpreter.Error("Division by 0");
         NUMOPS(/);
     }
 
@@ -203,6 +207,8 @@ namespace SHOM {
     }
     
     void MemoryCell::operator^(MemoryCell const& a){
+        ETERR(Array);
+
         if (this->Type==String || a.Type==String)
             throw 0;
         
@@ -220,6 +226,7 @@ namespace SHOM {
 
     void MemoryCell::operator%(MemoryCell const& a){
         ETERR(String);
+        ETERR(Array);
 
         else if(this->Type==Integer)
             NUMOP(this, a, %, long long, Integer);
