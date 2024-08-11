@@ -103,8 +103,12 @@ namespace SHOM {
             Token.clear();
         }
 
-        inline void Error(const string& message, string spec=""){
-            cout << endl << this->File+":"+to_string(this->LineNo)+": "+message+spec+"\n\t"+this->Line;
+        inline void Error(const string& message, string spec="", bool debug=1){
+            cout << (
+                debug ? 
+                "\n"+this->File+":"+to_string(this->LineNo)+": "+message+spec+"\n\t"+this->Line :
+                "SHOM: "+message
+            );
             exit(0);
         }
 
