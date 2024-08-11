@@ -41,7 +41,7 @@ namespace SHOM {
                 continue;
             }
 
-            if (c==Syntax::Array[0]){
+            if (c==Syntax::ArrBraces[0]){
                 if (this->InArray)
                     this->Error("Unexpected array brace");
                 this->InArray = true;
@@ -105,7 +105,10 @@ namespace SHOM {
                         this->InArray ? this->CurrentArray.push_back(m) : this->Memory.push(m);
                     }
                     
-                    if (c==Syntax::Array[1]){
+                    if (c==Syntax::ArrBraces[1]){
+                        if (!this->InArray)
+                            this->Error("Mismatched array brace");
+
                         this->InArray = false;
 
                         this->Memory.push({"", Array, this->CurrentArray});
@@ -117,7 +120,7 @@ namespace SHOM {
                             this->Error("Unexpected instruction: ", string(1, c));
                         Syntax::Instructions[c]();
                     }
-                    else if (!isspace(c) && c!=Syntax::Quote && c!=Syntax::Braces[0] && c!=Syntax::Braces[1] && c!=Syntax::Array[0] && c!=Syntax::Array[1])
+                    else if (!isspace(c) && c!=Syntax::Quote && c!=Syntax::Braces[0] && c!=Syntax::Braces[1] && c!=Syntax::ArrBraces[0] && c!=Syntax::ArrBraces[1])
                         this->Error("Unrecognised instruction: ", string(1, c));
 
                     Reset();

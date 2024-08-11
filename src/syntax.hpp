@@ -27,7 +27,7 @@ namespace SHOM {
     namespace Syntax {
         char Quote = '"';
         string Braces = "{}";
-        string Array = "[]";
+        string ArrBraces = "[]";
 
         unordered_map<char, char> Escape = {
             {'n', '\n'},
@@ -95,14 +95,19 @@ namespace SHOM {
                 auto i = GETTOP;
                 auto a = GETTOP;
 
-                if (a.Type!=String)
+                if (a.Type!=String && a.Type!=Array)
                     Interpreter.Error("Cannot apply indexing to primitive type: ", a.Cast<string>());
 
                 if (i.Type!=Integer)
                     Interpreter.Error("Index must be an integer: ", i.Cast<string>());
 
                 try {
-                    Interpreter.Memory.push(MemoryCell({string(1, a.Cast<string>().at(i.Cast<long long>())), String}));
+                    auto ind = i.Cast<long long>();
+
+                    if (a.Type==String)
+                        Interpreter.Memory.push(MemoryCell({string(1, a.Cast<string>().at(ind)), String}));
+                    else 
+                        Interpreter.Memory.push(a.ArrayValue.at(ind));
                 }
                 catch(...){
                     Interpreter.Error("Invalid index: ", i.Cast<string>());

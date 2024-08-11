@@ -54,6 +54,19 @@ namespace SHOM {
         template <typename T>
         T Cast() const;
 
+        size_t Size() const {
+            switch (this->Type){
+                case Integer:
+                    return this->Cast<long long>();
+                case Double:
+                    return this->Cast<double>();
+                case String:
+                    return this->Cast<string>().size();
+                case Array:
+                    return this->ArrayValue.size();
+            }
+        }
+
         void operator+(MemoryCell const& a);
         void operator-(MemoryCell const& a);
         void operator*(MemoryCell const& a);
@@ -124,6 +137,8 @@ namespace SHOM {
                     s+=this->ArrayValue[i].Cast<string>()+(i<this->ArrayValue.size()-1 ? " " : "");
                 return s+"]";
             }
+            else if constexpr (is_same_v<T, bool>)
+                return !this->ArrayValue.empty();
             else 
                 throw 0;
         }
@@ -134,6 +149,8 @@ namespace SHOM {
                 return stoll(v);
             else if constexpr (is_same_v<T, double>)
                 return stod(v);
+            else if constexpr (is_same_v<T, bool>)
+                return !v.empty();
             else
                 return v;
         }
@@ -183,27 +200,27 @@ namespace SHOM {
     }
 
     void MemoryCell::operator&(MemoryCell const& a){
-        LOGOP(!this->Cast<string>().empty(), !a.Cast<string>().empty(), &&);
+        Interpreter.Memory.push({this->Cast<bool>() && a.Cast<bool>(), Integer});
     }
 
     void MemoryCell::operator|(MemoryCell const& a){
-        LOGOP(!this->Cast<string>().empty(), !a.Cast<string>().empty(), ||);
+        Interpreter.Memory.push({this->Cast<bool>() || a.Cast<bool>(), Integer});
     }
     
     void MemoryCell::operator==(MemoryCell const& a){
-        LOGOP(this->Cast<string>(), a.Cast<string>(), ==);
+        Interpreter.Memory.push({this->Type!=a.Type ? 0 : this->Cast<string>()==a.Cast<string>(), Integer});
     }
     
     void MemoryCell::operator!=(MemoryCell const& a){
-        LOGOP(this->Cast<string>(), a.Cast<string>(), !=);
+        Interpreter.Memory.push({this->Type!=a.Type ? 1 : this->Cast<string>()!=a.Cast<string>(), Integer});
     }
 
     void MemoryCell::operator>(MemoryCell const& a){
-        LOGOP(this->Cast<string>().size(), a.Cast<string>().size(), >);
+        Interpreter.Memory.push({this->Size() > a.Size(), Integer});
     }
     
     void MemoryCell::operator<(MemoryCell const& a){
-        LOGOP(this->Cast<string>().size(), a.Cast<string>().size(), <);
+        Interpreter.Memory.push({this->Size() < a.Size(), Integer});
     }
     
     void MemoryCell::operator^(MemoryCell const& a){
