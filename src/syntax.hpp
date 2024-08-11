@@ -49,7 +49,7 @@ namespace SHOM {
         };
 
         unordered_map<char, function<void()>> Instructions = {
-            {'(', [](){
+            {'$', [](){
                 string s;
                 getline(cin, s);
                 Interpreter.Memory.push({s, String});
@@ -117,7 +117,7 @@ namespace SHOM {
                 }
                 catch(...){ OOBINDEX; }
             }},
-            {'\'', [](){
+            {'(', [](){
                 CHECKSIZE(2);
                 auto e = GETTOP;
                 auto& a = TOP;
@@ -126,7 +126,7 @@ namespace SHOM {
                 
                 a.ArrayValue.push_back(e);
             }},
-            {'`', [](){
+            {')', [](){
                 CHECKSIZE(2);
                 auto i = GETTOP;
                 auto& a = TOP;
@@ -140,9 +140,9 @@ namespace SHOM {
 
                 a.ArrayValue.erase(a.ArrayValue.begin()+ind);
             }},
-            {')', [](){
+            {'`', [](){
                 CHECKSIZE(2);
-                auto e = TOP.Cast<string>(); GETTOP;
+                auto e = TOP.Cast<string>(); Interpreter.Memory.pop();
                 auto& a = TOP;
 
                 CHECKARR("Cannot get index of element from non-array");
@@ -192,9 +192,11 @@ namespace SHOM {
                 Interpreter.Blocks.clear();
 
                 Interpreter.Iterators.push_back(0);
-                for (long long i=0;i<range;i++){
+                long long i = 0;
+                while (i!=range){
                     Interpreter.InterpreteLine(code);
                     Interpreter.Iterators.back()++;
+                    i++;
                 }
                 Interpreter.Iterators.pop_back();
             }},
