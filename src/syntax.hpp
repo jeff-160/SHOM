@@ -113,6 +113,14 @@ namespace SHOM {
                     Interpreter.Error("Invalid index: ", i.Cast<string>());
                 }
             }},
+            {'\'', [](){
+                auto e = GETTOP;
+
+                if (TOP.Type!=Array)
+                    Interpreter.Error("Cannot add element to non-array");
+                
+                TOP.ArrayValue.push_back(e);
+            }},
 
             {'?', [](){
                 CHECKBLOCKS;
@@ -141,7 +149,7 @@ namespace SHOM {
             {':', [](){
                 CHECKBLOCKS;
 
-                long long range = Interpreter.Memory.empty() ? 0 : TOP.Type==String ? TOP.Cast<string>().size() : TOP.Cast<long long>();
+                long long range = Interpreter.Memory.empty() ? 0 : TOP.Type==String || TOP.Type==Array ? TOP.Size() : TOP.Cast<long long>();
 
                 string code = Interpreter.Blocks.back();
                 Interpreter.Blocks.clear();
@@ -157,7 +165,7 @@ namespace SHOM {
                 Interpreter.Iterator<0 ? 
                     Interpreter.Error("Iterator can only be accessed within a loop") : 
                     Interpreter.Memory.push({Interpreter.Iterator, Integer});
-            }}
+            }},
         };
     }
 }
