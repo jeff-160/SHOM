@@ -41,7 +41,7 @@ namespace SHOM {
         unordered_map<char, function<void()>> Instructions = {
             {'(', [](){
                 string s;
-                cin >> s;
+                getline(cin, s);
                 Interpreter.Memory.push({s, String});
             }},
             {'~', [](){
@@ -155,17 +155,17 @@ namespace SHOM {
                 string code = Interpreter.Blocks.back();
                 Interpreter.Blocks.clear();
 
-                Interpreter.Iterator = 0;
+                Interpreter.Iterators.push_back(0);
                 for (long long i=0;i<range;i++){
                     Interpreter.InterpreteLine(code);
-                    Interpreter.Iterator++;
+                    Interpreter.Iterators.back()++;
                 }
-                Interpreter.Iterator = -1;
+                Interpreter.Iterators.pop_back();
             }},
             {'i', [](){
-                Interpreter.Iterator<0 ? 
+                Interpreter.Iterators.empty() ? 
                     Interpreter.Error("Iterator can only be accessed within a loop") : 
-                    Interpreter.Memory.push({Interpreter.Iterator, Integer});
+                    Interpreter.Memory.push({Interpreter.Iterators.back(), Integer});
             }},
         };
     }
