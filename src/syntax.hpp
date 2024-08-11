@@ -26,6 +26,7 @@
 namespace SHOM {
     namespace Syntax {
         char Quote = '"';
+        char Comment = '#';
         string Braces = "{}";
         string ArrBraces = "[]";
 

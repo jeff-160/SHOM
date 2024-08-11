@@ -10,6 +10,9 @@ namespace SHOM {
         for (size_t i=0;i<line.size();i++){
             char c = line[i];
 
+            if (c==Syntax::Comment && this->CurrentType!=String)
+                break;
+
             if (this->CurrentType!=String && !INSTRING){
                 if (c==Syntax::Braces[0]){
                     this->BlockTree.push_back(c);
