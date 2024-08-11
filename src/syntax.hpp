@@ -12,8 +12,9 @@
     catch(...) { Interpreter.Error("Invalid operation"); }
 
 #define CONVERT(d, t) \
+    CHECKSIZE(1); \
     try{ \
-        MemoryCell& a = TOP; \
+        auto& a = TOP; \
         a.Value = a.Cast<t>(); \
         a.Type = d; \
     } \
@@ -21,6 +22,15 @@
 
 #define CHECKBLOCKS \
     if (Interpreter.Blocks.empty()) Interpreter.Error("Expected conditional block")
+
+#define CHECKINDEX \
+    if (i.Type!=Integer) Interpreter.Error("Index must be an integer: ", i.Cast<string>());
+
+#define OOBINDEX \
+    Interpreter.Error("Invalid index: ", i.Cast<string>());
+
+#define CHECKARR(s) \
+    if (a.Type!=Array) Interpreter.Error(s, a.Cast<string>());
 
 
 namespace SHOM {
@@ -45,12 +55,7 @@ namespace SHOM {
                 Interpreter.Memory.push({s, String});
             }},
             {'~', [](){
-                if (Interpreter.Memory.empty())
-                    cout << "";
-
-                else{
-                    cout << TOP.Cast<string>();
-                }
+                cout << (Interpreter.Memory.empty() ? "" : TOP.Cast<string>());
             }},
             {',', [](){
                 if (!Interpreter.Memory.empty())
@@ -61,6 +66,7 @@ namespace SHOM {
                     Interpreter.Memory.pop();
             }},
             {'\\', [](){
+                CHECKSIZE(2);
                 auto a = GETTOP;
                 auto b = GETTOP;
 
@@ -94,13 +100,12 @@ namespace SHOM {
             {'@', [](){
                 CHECKSIZE(2);
                 auto i = GETTOP;
-                auto a = GETTOP;
+                auto& a = TOP;
 
                 if (a.Type!=String && a.Type!=Array)
                     Interpreter.Error("Cannot apply indexing to primitive type: ", a.Cast<string>());
 
-                if (i.Type!=Integer)
-                    Interpreter.Error("Index must be an integer: ", i.Cast<string>());
+                CHECKINDEX;
 
                 try {
                     auto ind = i.Cast<long long>();
@@ -110,17 +115,47 @@ namespace SHOM {
                     else 
                         Interpreter.Memory.push(a.ArrayValue.at(ind));
                 }
-                catch(...){
-                    Interpreter.Error("Invalid index: ", i.Cast<string>());
-                }
+                catch(...){ OOBINDEX; }
             }},
             {'\'', [](){
+                CHECKSIZE(2);
                 auto e = GETTOP;
+                auto& a = TOP;
 
-                if (TOP.Type!=Array)
-                    Interpreter.Error("Cannot add element to non-array");
+                CHECKARR("Cannot add element to non-array: ");
                 
-                TOP.ArrayValue.push_back(e);
+                a.ArrayValue.push_back(e);
+            }},
+            {'`', [](){
+                CHECKSIZE(2);
+                auto i = GETTOP;
+                auto& a = TOP;
+
+                CHECKARR("Cannot remove element from non-array: ");
+                CHECKINDEX;
+
+                auto ind = i.Cast<long long>();
+                if (ind<0 || ind>=a.Size())
+                    OOBINDEX;
+
+                a.ArrayValue.erase(a.ArrayValue.begin()+ind);
+            }},
+            {')', [](){
+                CHECKSIZE(2);
+                auto e = TOP.Cast<string>(); GETTOP;
+                auto& a = TOP;
+
+                CHECKARR("Cannot get index of element from non-array");
+
+                long long ind = -1;
+                for (size_t i=0;i<a.ArrayValue.size();i++){
+                    if (a.ArrayValue[i].Cast<string>()==e){
+                        ind = i;
+                        break;
+                    }
+                }
+
+                Interpreter.Memory.push({ind, Integer});
             }},
 
             {'?', [](){
@@ -150,7 +185,8 @@ namespace SHOM {
             {':', [](){
                 CHECKBLOCKS;
 
-                long long range = Interpreter.Memory.empty() ? 0 : TOP.Type==String || TOP.Type==Array ? TOP.Size() : TOP.Cast<long long>();
+                auto& a = TOP;
+                long long range = Interpreter.Memory.empty() ? 0 : a.Type==String || a.Type==Array ? a.Size() : a.Cast<long long>();
 
                 string code = Interpreter.Blocks.back();
                 Interpreter.Blocks.clear();

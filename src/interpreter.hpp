@@ -15,12 +15,6 @@
         NUMOP(this, a, o, double, Double); \
     }
 
-#define LOGOP(x, y, o) \
-    if (a.Type==String || this->Type==String){ \
-        Interpreter.Memory.push({(x o y), Integer}); \
-    } \
-    NUMOPS(o);
-
 #define IMPCAST \
     if constexpr (is_same_v<T, string>) { \
         ostringstream oss; \
@@ -56,14 +50,14 @@ namespace SHOM {
 
         size_t Size() const {
             switch (this->Type){
-                case Integer:
-                    return this->Cast<long long>();
-                case Double:
-                    return this->Cast<double>();
                 case String:
                     return this->Cast<string>().size();
                 case Array:
                     return this->ArrayValue.size();
+                case Double:
+                    return this->Cast<double>();
+                default:
+                    return this->Cast<long long>();
             }
         }
 
