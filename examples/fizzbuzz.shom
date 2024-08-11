@@ -1,3 +1,3 @@
 # fizzbuzz up to a given range
 
-"FizzBuzz range: "~(I{i1+;15%0={i1+S" FizzBuzz\n"+~}{,;3%0={i1+S" Fizz\n"+~}{,5%0={i1+S" Buzz\n"+~}?}?}?}:
+"FizzBuzz range: "~(I{i1+;15%0={i1+S" FizzBuzz\n"+~,}{,;3%0={i1+S" Fizz\n"+~,}{,5%0={i1+S" Buzz\n"+~,}?}?}?}:
