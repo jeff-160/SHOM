@@ -1,3 +1,0 @@
-# computing the size of an arbitrary string
-
-"String: "~${i0={i}{,}?1+}:"Size: "\+~

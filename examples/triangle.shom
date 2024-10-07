@@ -1,3 +1,0 @@
-# renders a right angled triangle of a given width and height
-
-$I{i1+{"*"~,}:"\n"~,}:
