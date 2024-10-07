@@ -1,3 +1,5 @@
+#pragma once
+
 #define TOP Interpreter.Memory.top()
 
 #define GETTOP TOP; Interpreter.Memory.pop()
@@ -37,6 +39,7 @@ namespace SHOM {
     namespace Syntax {
         char Quote = '"';
         char Comment = '#';
+        char Break = '\'';
         string Braces = "{}";
         string ArrBraces = "[]";
 
@@ -190,11 +193,17 @@ namespace SHOM {
 
                 string code = Interpreter.Blocks.back();
                 Interpreter.Blocks.clear();
-
                 Interpreter.Iterators.push_back(0);
-                long long i = 0;
+
+                long long i = Interpreter.Break = 0;
                 while (i!=range){
                     Interpreter.InterpreteLine(code);
+
+                    if (Interpreter.Break){
+                        Interpreter.Break = false;
+                        break;
+                    }
+
                     Interpreter.Iterators.back()++;
                     i++;
                 }
@@ -204,7 +213,7 @@ namespace SHOM {
                 Interpreter.Iterators.empty() ? 
                     Interpreter.Error("Iterator can only be accessed within a loop") : 
                     Interpreter.Memory.push({Interpreter.Iterators.back(), Integer});
-            }},
+            }}
         };
     }
 }

@@ -12,6 +12,7 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <cmath>
 
 using namespace std;
 using namespace std::chrono;

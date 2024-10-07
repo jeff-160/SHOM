@@ -1,3 +1,5 @@
+#pragma once
+
 #define ETERR(t) \
     if (this->Type==t || a.Type==t) throw 0
 
@@ -21,7 +23,7 @@
         oss << setprecision(16) << v; \
         return oss.str(); \
     } \
-    else return (T)v; \
+    else return (T)v;
 
 
 string operator*(const string& s, long long n){
@@ -85,6 +87,7 @@ namespace SHOM {
         string Token = "";
 
         bool InArray = false;
+        bool Break = false;
         vector<MemoryCell> CurrentArray;
 
         deque<string> Blocks;

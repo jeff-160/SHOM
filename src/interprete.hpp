@@ -1,3 +1,4 @@
+#pragma once
 #define TREELAST(c) (!this->BlockTree.empty() && this->BlockTree.back()==c)
 #define INBLOCK TREELAST(Syntax::Braces[0])
 #define INSTRING TREELAST(Syntax::Quote)
@@ -53,6 +54,12 @@ namespace SHOM {
             if (isdigit(c) && this->CurrentType!=String){
                 if (this->CurrentType!=Double)
                     this->CurrentType = Integer;
+            }
+            
+            else if (c==Syntax::Break && this->CurrentType!=String){
+                Interpreter.Break = true;
+                this->Reset();
+                break;
             }
 
             else if (this->CurrentType==String && i<line.size()-1 && c=='\\'){
@@ -123,10 +130,14 @@ namespace SHOM {
                             this->Error("Unexpected instruction: ", string(1, c));
                         Syntax::Instructions[c]();
                     }
-                    else if (!isspace(c) && c!=Syntax::Quote && c!=Syntax::Braces[0] && c!=Syntax::Braces[1] && c!=Syntax::ArrBraces[0] && c!=Syntax::ArrBraces[1])
-                        this->Error("Unrecognised instruction: ", string(1, c));
+                    else if (
+                        !isspace(c) && c!=Syntax::Quote && 
+                        c!=Syntax::Braces[0] && c!=Syntax::Braces[1] && 
+                        c!=Syntax::ArrBraces[0] && c!=Syntax::ArrBraces[1] &&
+                        c!=Syntax::Break
+                    ) this->Error("Unrecognised instruction: ", string(1, c));
 
-                    Reset();
+                    this->Reset();
 
                     continue;
                 }
