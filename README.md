@@ -9,9 +9,11 @@
 ---
 
 ## Installation and Usage
+Configuration
 1. Download this repository  
 2. Run `build.bat` to add SHOM to the system environment variables
-3. SHOM source files can be run in your terminal 
+
+Running SHOM source files
 ```batch
 > shom test.shom
 Hello World!
