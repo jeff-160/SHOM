@@ -1,3 +1,8 @@
+## Introduction
+SHOM is a stack-based esolang that uses minimalist syntax.
+
+---
+
 ## Language features
 - [x] Basic I/O
 - [x] Arithmetic and logical operations
