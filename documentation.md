@@ -23,7 +23,7 @@ Strings: Text (e.g.`hello world`)
 
 `\`: Swaps the topmost two values in the stack
 
-';': Duplicates the topmost value in the stack
+`;`: Duplicates the topmost value in the stack
 
 ---
 
